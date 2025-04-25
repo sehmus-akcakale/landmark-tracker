@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landmark Tracking System</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Landmark Tracking System</h1>
+        <div id="auth-container">
+            <!-- Login/register buttons shown when user is not logged in -->
+            <div id="auth-buttons">
+                <button id="showLoginBtn">Login</button>
+                <button id="showRegisterBtn">Register</button>
+            </div>
+            <!-- User info and logout button shown when user is logged in -->
+            <div id="user-info" style="display: none;">
+                <span id="username">Username</span>
+                <button id="logoutBtn">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main id="app-content" style="display: none;">
+        <!-- Main navigation tabs -->
+        <div class="tabs">
+            <div class="tab active" data-tab="map-tab">Map View</div>
+            <div class="tab" data-tab="landmarks-tab">My Landmarks</div>
+            <div class="tab" data-tab="visited-tab">Visited Places</div>
+            <div class="tab" data-tab="plans-tab">Visit Plans</div>
+        </div>
+
+        <!-- Map View Tab -->
+        <div class="tab-content active" id="map-tab">
+            <h2>Click on the Map to Add Landmarks</h2>
+            <div id="map"></div>
+
+            <div class="form-container">
+                <div id="landmark-form">
+                    <h3>Landmark Details</h3>
+                    <div class="form-group">
+                        <label for="landmark-name">Name:</label>
+                        <input type="text" id="landmark-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="landmark-description">Description:</label>
+                        <textarea id="landmark-description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="landmark-category">Category:</label>
+                        <select id="landmark-category">
+                            <option value="historical">Historical</option>
+                            <option value="natural">Natural</option>
+                            <option value="cultural">Cultural</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <button id="addLandmarkBtn" disabled>Add Landmark</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Landmarks Tab -->
+        <div class="tab-content" id="landmarks-tab">
+            <h2>My Landmarks</h2>
+            <div class="search-container">
+                <div class="form-group">
+                    <input type="text" id="landmark-search-name" placeholder="Search by name...">
+                    <select id="landmark-filter-category">
+                        <option value="">All Categories</option>
+                        <option value="historical">Historical</option>
+                        <option value="natural">Natural</option>
+                        <option value="cultural">Cultural</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <button id="landmarkSearchBtn">Search</button>
+                    <button id="landmarkResetBtn">Reset</button>
+                </div>
+            </div>
+            <div class="grid" id="landmarksGrid"></div>
+        </div>
+
+        <!-- Visited Places Tab -->
+        <div class="tab-content" id="visited-tab">
+            <h2>Visited Places</h2>
+            <div class="search-container">
+                <div class="form-group">
+                    <input type="text" id="visited-search-name" placeholder="Search by place name or visitor name...">
+                    <input type="date" id="visited-filter-date" placeholder="Filter by date...">
+                    <button id="visitedSearchBtn">Search</button>
+                    <button id="visitedResetBtn">Reset</button>
+                </div>
+            </div>
+            <div class="grid" id="visitedGrid"></div>
+        </div>
+
+        <!-- Visit Plans Tab -->
+        <div class="tab-content" id="plans-tab">
+            <h2>Visit Plans</h2>
+            <div class="button-container">
+                <button id="createNewPlanBtn">Create New Plan</button>
+            </div>
+            <div class="grid" id="plansGrid"></div>
+        </div>
+    </main>
+
+    <!-- Welcome Page (shown when not logged in) -->
+    <div id="welcome-page">
+        <div class="welcome-container">
+            <h2>Welcome to Landmark Tracking System</h2>
+            <p>Discover, track, and plan your landmark visits with ease.</p>
+            <div class="features">
+                <div class="feature-card">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h3>Add Landmarks</h3>
+                    <p>Create and save your favorite landmarks on the map</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Record Visits</h3>
+                    <p>Keep track of all the places you've visited</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-route"></i>
+                    <h3>Plan Trips</h3>
+                    <p>Create detailed visit plans for your future adventures</p>
+                </div>
+            </div>
+            <div class="welcome-buttons">
+                <button id="welcome-login-btn" class="btn btn-primary">Login</button>
+                <button id="welcome-register-btn" class="btn btn-secondary">Register</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-login">&times;</span>
+            <h2>Login</h2>
+            <div class="form-group">
+                <label for="login-email">Email:</label>
+                <input type="email" id="login-email" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <button id="loginSubmitBtn">Login</button>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-register">&times;</span>
+            <h2>Register</h2>
+            <div class="form-group">
+                <label for="register-username">Username:</label>
+                <input type="text" id="register-username" required>
+            </div>
+            <div class="form-group">
+                <label for="register-email">Email:</label>
+                <input type="email" id="register-email" required>
+            </div>
+            <div class="form-group">
+                <label for="register-password">Password:</label>
+                <input type="password" id="register-password" required>
+            </div>
+            <button id="registerSubmitBtn">Register</button>
+        </div>
+    </div>
+
+    <!-- Visit Modal Template -->
+    <template id="visit-modal-template">
+        <h3>Record a Visit to <span class="landmark-name"></span></h3>
+        <p><strong>Location:</strong> <span class="landmark-location"></span></p>
+        <p><strong>Description:</strong> <span class="landmark-description"></span></p>
+        <p><strong>Category:</strong> <span class="landmark-category"></span></p>
+
+        <div class="modal-form">
+            <div class="form-group">
+                <label for="visitDate">Visit Date:</label>
+                <input type="date" id="visitDate" required>
+            </div>
+            <div class="form-group">
+                <label for="visitorName">Visitor Name:</label>
+                <input type="text" id="visitorName" placeholder="Enter visitor name">
+            </div>
+            <div class="form-group">
+                <label for="visitNote">Notes:</label>
+                <textarea id="visitNote"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="rating">Rating:</label>
+                <select id="rating">
+                    <option value="0">Select Rating</option>
+                    <option value="1">★☆☆☆☆</option>
+                    <option value="2">★★☆☆☆</option>
+                    <option value="3">★★★☆☆</option>
+                    <option value="4">★★★★☆</option>
+                    <option value="5">★★★★★</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button id="save-visit-btn">Save Visit</button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Visit Plan Modal Template -->
+    <template id="visit-plan-modal-template">
+        <h3>Create Visit Plan</h3>
+        <div class="form-group">
+            <label for="plan-name">Plan Name:</label>
+            <input type="text" id="plan-name" required>
+        </div>
+        <div class="form-group">
+            <label for="plan-date">Planned Date:</label>
+            <input type="date" id="plan-date" required>
+        </div>
+        <div class="form-group">
+            <label>Places to Visit:</label>
+            <div id="plan-landmarks" class="landmarks-list"></div>
+        </div>
+        <div class="form-group">
+            <label for="plan-overall-notes">Overall Notes:</label>
+            <textarea id="plan-overall-notes"></textarea>
+        </div>
+        <div class="modal-buttons">
+            <button id="save-plan-btn">Save Plan</button>
+        </div>
+    </template>
+
+    <!-- Card Templates -->
+    <template id="landmark-card-template">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"></h3>
+                <span class="badge badge-primary"></span>
+            </div>
+            <div class="card-body">
+                <p class="landmark-details"></p>
+                <p class="landmark-location"><i class="location-icon"></i> <span class="coordinates"></span></p>
+                <p class="landmark-description"></p>
+            </div>
+            <div class="card-footer">
+                <button class="visit-btn">Visit</button>
+                <button class="view-on-map-btn">View on Map</button>
+                <button class="edit-btn">View Details</button>
+                <!-- <button class="delete-btn danger">Delete</button> -->
+            </div>
+        </div>
+    </template>
+
+    <template id="visited-card-template">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"></h3>
+                <span class="visit-date"></span>
+            </div>
+            <div class="card-body">
+                <p class="visitor-name"></p>
+                <p class="visit-notes"></p>
+                <div class="rating-display"></div>
+            </div>
+            <div class="card-footer">
+                <button class="view-details-btn">View Details</button>
+            </div>
+        </div>
+    </template>
+
+    <template id="plan-card-template">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"></h3>
+                <span class="plan-date"></span>
+            </div>
+            <div class="card-body">
+                <p class="plan-landmarks-count"></p>
+                <p class="plan-notes"></p>
+            </div>
+            <div class="card-footer">
+                <button class="view-plan-btn">View Details</button>
+            </div>
+        </div>
+    </template>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>
