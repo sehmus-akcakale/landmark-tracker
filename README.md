@@ -52,7 +52,7 @@ This web application allows users to add landmarks on a map, visit them, and cre
    npm run dev
    ```
 
-5. Open your browser and navigate to `http://localhost:5000`
+5. Open your browser and navigate to `http://localhost:5000` or `https://landmark-tracker.onrender.com/`
 
 ## API Endpoints
 
